@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间应该是对应接口的包名+接口名 -->
+<mapper namespace="com.nuc.dao.ITouristDao">
+
+	<resultMap id="TouristS" type="com.nuc.model.Tourist">
+        <result column="Sno" property="Number"/>
+        <result column="Spassword" property="Password"/>
+    </resultMap>
+    
+    <resultMap id="TouristT" type="com.nuc.model.Tourist">
+        <result column="Tno" property="Number"/>
+        <result column="Tpassword" property="Password"/>
+    </resultMap>
+    
+    <resultMap id="TouristD" type="com.nuc.model.Tourist">
+        <result column="Ano" property="Number"/>
+        <result column="Apassword" property="Password"/>
+    </resultMap>
+    
+    <!--根据学号获取学生信息 -->
+    <select id="queryTouristBySno" parameterType="String" resultMap="TouristS">
+         select * from studentlogin where Sno=#{Sno}
+    </select>
+    
+    <!--根据教师工号获取教师信息 -->
+    <select id="queryTouristByTno" parameterType="String" resultMap="TouristT">
+         select * from teacherlogin where Tno=#{Tno}
+    </select>
+    
+    <!--根据教务处教师工号获取教务处教师信息 -->
+    <select id="queryTouristByAno" parameterType="String" resultMap="TouristD">
+         select * from departmentlogin where Ano=#{Ano}
+    </select>
+</mapper>

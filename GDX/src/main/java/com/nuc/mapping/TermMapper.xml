@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间应该是对应接口的包名+接口名 -->
+<mapper namespace="com.nuc.dao.ITermDao">
+	<resultMap id="Term" type="com.nuc.model.Term">
+        <result column="Ntime" property="Nowterm"/>
+    </resultMap>
+
+    <!--根据教务处教师工号获取教务处教师信息 -->
+    <select id="getTerm" resultMap="Term">
+         select * 
+         from nowterm
+    </select>
+    
+    <!--根据教务处教师工号获取教务处教师信息 -->
+    <update id="setTerm">
+        update nowterm
+    	set Ntime = #{newTime}
+    </update>
+    
+</mapper>

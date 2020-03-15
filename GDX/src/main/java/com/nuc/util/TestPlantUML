@@ -1,0 +1,17 @@
+@startuml
+actor "教务处用户" as Y
+Y -> DepartmentStudent: 点击对应学生重置按钮
+control "DepartmentController" as C
+DepartmentStudent -> C: 向控制层提交学号
+C -> DepartmentService: 提交学号给服务层
+DepartmentService -> IDepartmentDao: 提交学号给持久层
+database "数据库" as D
+IDepartmentDao -> D: 提交学号
+activate D #red
+IDepartmentDao <- D: 数据库重置并返回状态
+deactivate D
+DepartmentService <- IDepartmentDao: 返回状态
+C <- DepartmentService: 返回状态
+DepartmentStudent <- C: 返回状态
+Y <- DepartmentStudent: 提示成功/错误
+@enduml

@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间应该是对应接口的包名+接口名 -->
+<mapper namespace="com.nuc.dao.ICourseDao">
+	 <sql id="course_where_if">
+		<if test="Cno!='' and Cno != null">
+            AND Cno = #{Cno}
+        </if>
+        <if test="CDimName!='' and CDimName != null">
+            AND Cname LIKE "%"#{CDimName}"%"
+        </if>
+        <if test="TDimName!='' and TDimName != null">
+            AND Tno in
+            (
+            	select Tno
+            	from teacher
+            	WHERE Tname LIKE "%"#{TDimName}"%"
+            ) 
+        </if>
+	</sql>
+	
+	<sql id="pcourse_where_if">
+		<if test="Time!='' and Time != null">
+            AND Time = #{Time}
+        </if>
+		<if test="Cno!='' and Cno != null">
+            AND Cno = #{Cno}
+        </if>
+        <if test="CDimName!='' and CDimName != null">
+            AND Cname LIKE "%"#{CDimName}"%"
+        </if>
+        <if test="TDimName!='' and TDimName != null">
+            AND Tno in
+            (
+            	select Tno
+            	from teacher
+            	WHERE Tname LIKE "%"#{TDimName}"%"
+            ) 
+        </if>
+	</sql>
+
+    <!--根据课程号获取当前课程信息 -->
+    <select id="queryCourseByCourse" parameterType="String" resultType="com.nuc.model.Course">
+         select * 
+         from course 
+         where Cno=#{Cno}
+    </select>
+    
+    <!--根据课程号获取过去课程信息 -->
+    <select id="queryPCourseByCno" parameterType="String" resultType="com.nuc.model.Course">
+         select Cno, Cname, Ccredit, Cperiod, Tno 
+         from pastcourse 
+         where Cno=#{Cno} AND Time=#{Time}
+    </select>
+    
+    <!--根据教师工号获取当前学期所带课程 -->
+    <select id="queryCourseByTno" parameterType="String" resultType="com.nuc.model.Course">
+     	select * 
+     	from course 
+     	where Tno=#{Tno}
+    </select>
+    
+    <!--根据教师工号获取过去学期所带课程 -->
+    <select id="queryPCourseByTno" parameterType="String" resultType="com.nuc.model.Course">
+     	select Cno, Cname, Ccredit, Cperiod
+     	from pastcourse 
+     	where Tno=#{Tno} AND Time=#{Time}
+    </select>
+    
+    <!-- 获取课程总数 -->
+    <select id="getCourseTotal" resultType="int">
+        SELECT COUNT(*) 
+		from course
+        <where>
+            <include refid="course_where_if"/>
+        </where>
+    </select>
+    
+    
+    
+    <!-- 获取已选课程总数 -->
+    <select id="getPCourseTotal" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM course 
+        WHERE Cno IN
+        (	SELECT Cno
+        	FROM choose
+        	Where Sno=#{Sno}
+        )
+    </select>
+    
+    <!-- 查询从start位置开始的count条数据-->
+    <select id="queryCourseByPage" resultType="com.nuc.model.Course">
+        SELECT * 
+        FROM course
+        WHERE Cno NOT IN
+        (	SELECT Cno
+        	FROM choose
+        	Where Sno=#{Sno}
+        )
+        limit #{start}, #{count}
+    </select>
+    
+    <!-- 获取模糊查找指定页的课程-->
+    <select id="queryCourseByDimName" resultType="com.nuc.model.Course">
+        SELECT * 
+        FROM course
+        WHERE Cname LIKE "%"#{DimName}"%" AND Cno NOT IN
+        (	
+        	SELECT Cno
+        	FROM choose
+        	Where Sno=#{Sno}
+        )
+        limit #{start}, #{count}
+    </select>
+    
+    <!-- 获取模糊查找课程总数 -->
+    <select id="getDCourseTotal" resultType="int">
+        SELECT COUNT(*) 
+        FROM course
+        WHERE Cname LIKE "%"#{DimName}"%" AND Cno NOT IN
+        (	
+        	SELECT Cno
+        	FROM choose
+        	Where Sno=#{Sno}
+        )
+    </select>
+    
+    <resultMap id="Student" type="com.nuc.model.Student">
+        <result column="Sno" property="Sno"/>
+        <result column="Sname" property="Sname"/>
+        <result column="Ssex" property="Ssex"/>
+        <result column="Sclass" property="Sclass"/>
+        <result column="Smajor" property="Smajor"/>
+    </resultMap>
+    
+    <!--根据课程号获取学生列表 -->
+    <select id="queryStudentByCno" parameterType="String" resultMap="Student">
+     	select * 
+     	from student 
+     	where Sno IN
+     	(
+     		select Sno
+     		from choose
+     		where Cno=#{Cno}
+     	)
+    </select>
+    
+    <!--根据过去课程号获取过去学生列表 -->
+    <select id="queryPStudentByCno" parameterType="String" resultMap="Student">
+     	select * 
+     	from student 
+     	where Sno IN
+     	(
+     		select Sno
+     		from pastchoose
+     		where Cno=#{Cno} AND Time=#{Time}
+     	)
+    </select>
+    
+    <!--根据课程号修改学生当前学期课程分数 -->
+    <update id="updateGradeByCno" parameterType="String">
+    	update choose
+    	set Grade = #{Grade}
+    	where Sno = #{Sno} AND Cno = #{Cno}
+    </update>
+    
+    <!--根据课程号修改学生过去学期课程分数 -->
+    <update id="updatePGradeByCno" parameterType="String">
+    	update pastchoose
+    	set Grade = #{Grade}
+    	where Sno = #{Sno} AND Cno = #{Cno} AND Time = #{Time}
+    </update>
+    
+    <!--获取课程列表 -->
+    <select id="queryCourseListByPage" parameterType="String" resultType="com.nuc.model.Course">
+     	SELECT *
+        from course
+        <where>
+            <include refid="course_where_if"/>
+        </where>
+        limit #{start}, #{count}
+    </select>
+    
+    <!--获取过去课程列表 -->
+    <select id="queryPACourseListByPage" parameterType="String" resultType="com.nuc.model.Course">
+     	SELECT *
+        from pastcourse
+        <where>
+            <include refid="pcourse_where_if"/>
+        </where>
+        limit #{start}, #{count}
+    </select>
+    
+    <!-- 获取过去课程总数 -->
+    <select id="getPACourseTotal" resultType="int">
+        SELECT COUNT(*) 
+        FROM pastcourse
+        <where>
+            <include refid="pcourse_where_if"/>
+        </where>
+    </select>
+    
+    <!--增加一门课程 -->
+    <insert id="insertCourseByCourse" parameterType="com.nuc.model.Course">
+    	INSERT 
+    	INTO course(Cno, Cname, Ccredit, Cperiod, Tno)
+    	VALUES(#{Cno}, #{Cname}, #{Ccredit}, #{Cperiod}, #{Tno})
+    </insert>
+    
+    <!--根据课程号删除一门课程 -->
+    <delete id="deleteCourseByCno" parameterType="String">
+    	DELETE 
+    	FROM course
+    	WHERE Cno = #{Cno}
+    </delete>
+    
+    <!--根据课程号修改一门课程 -->
+    <update id="updatecourse" parameterType="String">
+    	update course
+    	set Ccredit=#{Ccredit}, Cperiod=#{Cperiod}, Cname=#{Cname}
+    	Where Cno = #{Cno}
+    </update>
+    
+    <!-- 进入下学期 -->
+    <update id="next0">
+    	update Nowterm
+    	set Ntime=#{Time}
+    </update>
+    
+    <!-- 进入下学期 -->
+    <insert id="next1">
+    	insert into
+    	pastcourse(Cno, Cname, Ccredit, Cperiod, Tno, Time)
+    	select Cno, Cname, Ccredit, Cperiod, Tno, #{Time} 
+    	From course
+    </insert>
+    
+    <!-- 进入下学期 -->
+    <insert id="next2">
+    	insert into
+    	pastchoose(Sno, Cno, Cname, Grade, Time)
+    	select Sno, choose.Cno, Cname, Grade, #{Time} 
+    	From choose
+    	left join course on choose.Cno = course.Cno
+    </insert>
+    
+    <!-- 进入下学期 -->
+    <delete id="next3">
+    	truncate table course
+    </delete>
+    
+    <!-- 进入下学期 -->
+    <delete id="next4">
+    	truncate table choose
+    </delete>
+    
+    <!-- 进入下学期 -->
+    <update id="next5">
+    	SET FOREIGN_KEY_CHECKS=0;
+    </update>
+    
+    <!-- 进入下学期 -->
+    <update id="next6">
+    	SET FOREIGN_KEY_CHECKS=1;
+    </update>
+    
+    <!-- 获取录入状态 -->
+    <select id="getentryStatus" resultType="String">
+        SELECT Allowinput
+        FROM nowterm
+    </select>
+    
+    <!-- 获取选课状态 -->
+    <select id="getselectStatus" resultType="String">
+        SELECT Allowchoose
+        FROM nowterm
+    </select>
+    
+    <!-- 设置录入状态 -->
+    <update id="setentryStatus">
+    	update Nowterm
+    	set Allowinput=#{status}
+    </update>
+    
+    <!-- 设置选课状态 -->
+    <update id="setselectStatus">
+    	update Nowterm
+    	set Allowchoose=#{status}
+    </update>
+    
+    <!--根据学号删除选课信息 -->
+    <delete id="deleteSCBySno" parameterType="String">
+    	DELETE
+    	FROM choose
+    	WHERE Sno = #{Sno}
+    </delete>
+    
+    <!--根据学号删除过去选课信息 -->
+    <delete id="deletePSCBySno" parameterType="String">
+    	DELETE
+    	FROM pastchoose
+    	WHERE Sno = #{Sno}
+    </delete>
+    
+    <!--根据教师工号删除课程信息 -->
+    <delete id="deleteCourseByTno" parameterType="String">
+    	DELETE
+    	FROM course
+    	WHERE Tno = #{Tno}
+    </delete>
+    
+    <!--根据教师工号删除课程信息 -->
+    <delete id="deleteSCByTno" parameterType="String">
+    	DELETE
+    	FROM choose
+    	WHERE Cno in
+    	(
+    		select Cno
+    		From course
+    		Where Tno = #{Tno}
+    	)
+    </delete>
+    
+    <!--根据教师工号删除过去课程信息 -->
+    <delete id="deletePCourseByTno" parameterType="String">
+    	DELETE
+    	FROM pastcourse
+    	WHERE Tno = #{Tno}
+    </delete>
+    
+    <!--根据教师工号删除过去课程信息 -->
+    <delete id="deletePSCByTno" parameterType="String">
+    	DELETE
+    	FROM pastchoose
+    	WHERE Cno in
+    	(
+    		select Cno
+    		From pastcourse
+    		Where Tno = #{Tno}
+    	)
+    </delete>
+</mapper>

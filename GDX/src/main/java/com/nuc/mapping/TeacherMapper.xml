@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间应该是对应接口的包名+接口名 -->
+<mapper namespace="com.nuc.dao.ITeacherDao">
+	<resultMap id="Teacher" type="com.nuc.model.Teacher">
+        <result column="Tno" property="Tno"/>
+        <result column="Tname" property="Tname"/>
+        <result column="Tsex" property="Tsex"/>
+        <result column="Tdept" property="Tdept"/>
+        <result column="Ttitle" property="Ttitle"/>
+        <result column="Ttel" property="Ttel"/>
+        <result column="Taddress" property="Taddress"/>
+        <result column="Temail" property="Temail"/>
+    </resultMap>
+    
+    <sql id="teacher_where_if">
+		<if test="Tno!='' and Tno != null">
+            AND Tno = #{Tno}
+        </if>
+        <if test="Ttitle!='' and Ttitle != null">
+            AND Ttitle = #{Ttitle}
+        </if>
+        <if test="TDimName!='' and TDimName != null">
+            AND Tname LIKE "%"#{TDimName}"%"
+        </if>
+        <if test="Tsex != '' and Tsex != null">
+            AND Tsex = #{Tsex}
+        </if>
+        <if test="Tdept != '' and Tdept != null">
+			AND Tdept = #{Tdept}
+        </if>
+	</sql>
+
+    <!--根据教师工号获取教师信息 -->
+    <select id="queryTeacherByTno" parameterType="String" resultMap="Teacher">
+         select * 
+         from teacher 
+         where Tno=#{Tno}
+    </select>
+    
+    <!--根据教师工号获取教师密码 -->
+    <select id="queryTpasswordByTno" parameterType="String" resultType="String">
+    	select Tpassword 
+    	from teacher 
+    	where Tno=#{Tno}
+    </select>
+    
+    <!--根据教师工号修改教师密码-->
+    <update id="updatePasswordByTno">
+    	update teacher
+    	set Tpassword = #{password}
+    	where Tno = #{Tno}
+  	</update>
+  	
+  	<!--获取教师总数 -->
+    <select id="getTeacherTotal" parameterType="String" resultType="int">
+     	SELECT COUNT(*) 
+        FROM teacher
+        <where>
+            <include refid="teacher_where_if"/>
+        </where>
+    </select>
+    
+    <!--获取教师列表 -->
+    <select id="queryTeacherListByPage" parameterType="String" resultMap="Teacher">
+     	SELECT *
+        FROM teacher
+        <where>
+            <include refid="teacher_where_if"/>
+        </where>
+        limit #{start}, #{count}
+    </select>
+    
+    <!--增加一个教师 -->
+    <insert id="insertTeacherByTeacher" parameterType="com.nuc.model.Teacher">
+    	INSERT 
+    	INTO teacher(Tno, Tname, Tsex, Tdept, Ttitle, Ttel, Taddress, Temail, Tpassword)
+    	VALUES(#{Tno}, #{Tname}, #{Tsex}, #{Tdept}, #{Ttitle}, #{Ttel}, #{Taddress}, #{Temail}, '111111')
+    </insert>
+    
+    <!--根据教师工号删除一个教师 -->
+    <delete id="deleteTeacherByTno" parameterType="String">
+    	DELETE 
+    	FROM teacher
+    	WHERE Tno = #{Tno}
+    </delete>
+    
+    <!--根据教师工号修改一个教师 -->
+    <update id="updateteacher" parameterType="String">
+    	update teacher
+    	set Tdept=#{Tdept}, Ttitle=#{Ttitle}, Ttel=#{Ttel}, Temail=#{Temail}
+    	Where Tno = #{Tno}
+    </update>
+    
+    <!--重置一个教师密码 -->
+    <update id="resetTpassByTno" parameterType="String">
+    	update teacher
+    	set Tpassword='111111'
+    	Where Tno = #{Tno}
+    </update>
+</mapper>

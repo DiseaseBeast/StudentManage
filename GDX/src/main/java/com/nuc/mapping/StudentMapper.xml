@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--命名空间应该是对应接口的包名+接口名 -->
+<mapper namespace="com.nuc.dao.IStudentDao">
+	<sql id="student_where_if">
+		<if test="Sno!='' and Sno != null">
+            AND Sno = #{Sno}
+        </if>
+        <if test="Sclass!='' and Sclass != null">
+            AND Sclass = #{Sclass}
+        </if>
+        <if test="SDimName!='' and SDimName != null">
+            AND Sname LIKE "%"#{SDimName}"%"
+        </if>
+        <if test="Ssex != '' and Ssex != null">
+            AND Ssex = #{Ssex}
+        </if>
+        <if test="Smajor != '' and Smajor != null">
+            AND Smajor = #{Smajor}
+        </if>
+        <if test="Sdept != '' and Sdept != null">
+            AND Smajor in 
+            (
+            	select Major
+            	from deptmajor
+            	where Dept = #{Sdept}
+            )
+        </if>
+	</sql>
+
+    <!--根据学号获取学生姓名 -->
+    <select id="querySnameBySno" parameterType="String" resultType="String">
+         select Sname 
+         from student 
+         where Sno=#{Sno}
+    </select>
+    
+    <resultMap id="Student" type="com.nuc.model.Student">
+        <result column="Sno" property="Sno"/>
+        <result column="Sname" property="Sname"/>
+        <result column="Ssex" property="Ssex"/>
+        <result column="Sclass" property="Sclass"/>
+        <result column="Smajor" property="Smajor"/>
+        <result column="Stel" property="Stel"/>
+        <result column="Saddress" property="Saddress"/>
+        <result column="Semail" property="Semail"/>
+    </resultMap>
+    
+    <!--根据学号获取学生信息 -->
+    <select id="queryStudentBySno" parameterType="String" resultMap="Student"><!-- 映射 -->
+     	select Sno, Sname, Ssex, Sclass, Smajor, Stel, Saddress, Semail 
+     	from student 
+     	where Sno=#{Sno}
+    </select>
+    
+    <!--根据学号获取学生密码 -->
+    <select id="querySpasswordBySno" parameterType="String" resultType="String">
+    	select Spassword 
+    	from student 
+    	where Sno=#{Sno}
+    </select>
+    
+    <!--根据专业获取学生学院 -->
+    <select id="querySdepBySmajor" parameterType="String" resultType="String">
+    	select Dept 
+    	from deptmajor 
+    	where Major=#{major}
+    </select>
+    
+    <!--根据学号修改学生密码-->
+    <update id="updatePasswordBySno">
+    	update student
+    	set Spassword = #{password}
+    	where Sno = #{Sno}
+  	</update>
+  	
+	<!--根据学号获取当前学期成绩 -->
+    <select id="queryResultBySno" parameterType="String" resultType="com.nuc.model.SCourse">
+     	select * 
+     	from choose 
+     	where Sno=#{Sno} AND Grade !=0
+    </select>
+    
+   	<!--根据学号获取过去学期成绩 -->
+    <select id="queryPResultBySno" parameterType="String" resultType="com.nuc.model.SCourse">
+     	select Sno, Cno, Grade 
+     	from pastchoose 
+     	where Sno=#{Sno} AND Grade !=0 AND Time=#{Time}
+    </select>
+    
+    <!--根据学号获取已选课程 -->
+    <select id="queryChooseBySno" parameterType="String" resultType="com.nuc.model.SCourse">
+    	select * 
+    	from choose 
+    	where Sno=#{Sno}
+    </select>
+    
+    <!--根据课程号取消已选课程 -->
+    <delete id="cancelChooseByCno" parameterType="String">
+    	DELETE 
+    	FROM choose 
+    	WHERE Sno=#{Sno} AND Cno=#{Cno}
+    </delete>
+    
+    <!-- 根据课程号添加学生当前已选课程 -->
+    <insert id="insertSCourseByCno" parameterType="String">
+        INSERT 
+        INTO choose(Sno, Cno) 
+        VALUES(#{Sno}, #{Cno})
+    </insert>
+  	
+  	<!--根据课程号获取当前学期该课程成绩 -->
+    <select id="queryGradeByCno" parameterType="String" resultType="String">
+     	select Grade 
+     	from choose 
+     	where Sno=#{Sno} AND Cno=#{Cno}
+    </select>
+    
+    <!--根据课程号获取过去学期该课程成绩 -->
+    <select id="queryPGradeByCno" parameterType="String" resultType="String">
+     	select Grade 
+     	from pastchoose 
+     	where Sno=#{Sno} AND Cno=#{Cno} AND Time=#{Time}
+    </select>
+    
+    <!--获取学生总数 -->
+    <select id="getStudentTotal" parameterType="String" resultType="int">
+     	SELECT COUNT(*) 
+        FROM student
+        <where>
+            <include refid="student_where_if"/>
+        </where>
+    </select>
+    
+    <!--获取学生列表 -->
+    <select id="queryStudentListByPage" parameterType="String" resultMap="Student">
+     	SELECT *
+        FROM student
+        <where>
+            <include refid="student_where_if"/>
+        </where>
+        limit #{start}, #{count}
+    </select>
+    
+    <!--增加一个学生 -->
+    <insert id="insertStudentByStudent" parameterType="com.nuc.model.Student">
+    	INSERT 
+    	INTO student(Sno, Sname, Ssex, Sclass, Smajor, Stel, Saddress, Semail, Spassword)
+    	VALUES(#{Sno}, #{Sname}, #{Ssex}, #{Sclass}, #{Smajor}, #{Stel}, #{Saddress}, #{Semail}, '111111')
+    </insert>
+    
+    <!--根据学号删除一个学生 -->
+    <delete id="deleteStudentBySno" parameterType="String">
+    	DELETE 
+    	FROM student
+    	WHERE Sno = #{Sno}
+    </delete>
+    
+    <!--根据学号修改一个学生 -->
+    <update id="updatestudent" parameterType="String">
+    	update student
+    	set Smajor=#{Smajor}, Sclass=#{Sclass}, Stel=#{Stel}, Semail=#{Semail}
+    	Where Sno = #{Sno}
+    </update>
+    
+    <!--重置一个学生密码 -->
+    <update id="resetSpassBySno" parameterType="String">
+    	update student
+    	set Spassword='111111'
+    	Where Sno = #{Sno}
+    </update>
+</mapper>
